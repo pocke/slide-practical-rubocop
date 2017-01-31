@@ -4,56 +4,69 @@
 
 ---
 
-## こんにちは
-
----
-
 ## 自己紹介
 
 ---
 
+### だれこれ
 
-<img style="width: 30%; border-radius: 50%" alt="ほにゃー" src="pocke.svg">
+
+<img style="width: 20%; border-radius: 50%" alt="ほにゃー" src="pocke.svg">
 
 - Pocke ( Masataka Kuwabara )
 - Engineer at Actcat Inc.
 - RuboCop Contributor
-- TW: @p\_ck\_  GH: @pocke
+- TW: [@p\_ck\_](https://twitter.com/p_ck_)  GH: [@pocke](https://github.com)
 
 ---
 
-## RuboCop Contributor ?
+### 労働
+
+
+<img src="sideci.png" alt="SideCI">
+
+[sideci.com](https://sideci.com)
 
 ---
 
-9番目にコミットが多かったり…
+### RuboCop でやってること
+
+- [Performance/RegexpMatch](https://github.com/bbatsov/rubocop/pull/3824)
+- [Lint/SafeNavigationChain](https://github.com/bbatsov/rubocop/pull/3804)
+- [Lint/MultipleCompare](https://github.com/bbatsov/rubocop/pull/3795)
+- ...
+
+Lint 関係の Cop メイン
+
+---
+
 
 <img src="rubocop-contributor.png" alt="Contribution Graph">
+
+トータルで9番目にコミットが多い
 
 [Contributors to bbatsov/rubocop](https://github.com/bbatsov/rubocop/graphs/contributors)
 
 ---
 
-ここ2ヶ月だと一番コミットしていたりします
-
 <img src="rubocop-2months.png" alt="Contribution Graph 2 months">
+
+ここ2ヶ月だと一番コミットが多いのは私
 
 [Contributors to bbatsov/rubocop](https://github.com/bbatsov/rubocop/graphs/contributors?from=2016-11-30&to=2017-01-30&type=c)
 
 
 ---
 
-主にLint関連のルールを追加したり、バグ修正をしていることが多いです。
 
-- [Performance/RegexpMatch](https://github.com/bbatsov/rubocop/pull/3824)
-- [Lint/SafeNavigationChain](https://github.com/bbatsov/rubocop/pull/3804)
-- [Lint/MultipleCompare](https://github.com/bbatsov/rubocop/pull/3795)
-- などなど
+## Agenda
 
 ---
 
+## Agenda
 
-そんな RuboCop 開発者が思う、実用的な RuboCop の使い方について話します。
+RuboCop 開発者から見た、<br>
+実用的な RuboCop の使い方を広めたい
 
 
 
@@ -64,7 +77,7 @@
 
 1. RuboCop とは
   1. 概略
-  1. つらい点
+  1. RuboCop はそのままでは実用的ではない？
 1. 実用的な RuboCop Lint 編
 1. 実用的な RuboCop Style 編
 
@@ -74,16 +87,14 @@
 
 ## 1. RuboCop とは
 
----
-
 Q. RuboCop を知っている人？ <i class="twa twa-lg twa-raised-hand"></i>
+
 
 
 ---
 
 ### 1-1 RuboCop の概略
 
----
 
 
 RuboCop は Rubyの静的解析器で、<br>
@@ -106,7 +117,8 @@ def foo
     end              # end の alignment がおかしい
 ```
 
-コーディングスタイルの問題を検出する
+- コーディングスタイルの問題を検出する
+- 多くの場合、`rubocop -a`で自動修正可能
 
 
 ---
@@ -155,12 +167,85 @@ end
 
 ---
 
+### 1-1 まとめ
+
+- RuboCop を使うと様々な観点からRubyコードの問題点を発見可能
+- `-a`オプションを使用することで自動で問題を修正
+
+RuboCop を使えば<br>
+Ruby コードに平穏が訪れる……？？
+
+---
+
+
 
 ### 1-2 RuboCop の問題点
 
 
+平穏は訪れない
+
 ---
 
+### ひたすら大量の警告
+
+弊社のメインプロダクトで無設定の RuboCop を走らせると、8545個の警告が
+
+```
+$ rubocop
+....
+
+764 files inspected, 8545 offenses detected
+```
+
+<i class="twa twa-2x twa-innocent"></i><i class="twa twa-2x twa-innocent"></i><i class="twa twa-2x twa-innocent"></i>
+
+
+---
+
+### 何故警告が出るのか
+
+```
+2065 Metrics/LineLength
+1539 Style/StringLiterals
+ 762 Style/FrozenStringLiteralComment
+ 704 Style/AsciiComments
+ 478 Style/Documentation
+ 206 Style/IndentHash
+ 168 Style/NumericLiterals
+ 157 Metrics/MethodLength
+ 154 Style/BracesAroundHashParameters
+ 151 Style/ExtraSpacing
+ 150 Metrics/AbcSize
+ 145 Style/ClassAndModuleChildren
+ 139 Metrics/BlockLength
+ 110 Style/SpaceInsideBlockBraces
+ 109 Style/HashSyntax
+```
+
+警告数が上位15件の Cop
+
+---
+
+
+```
+2065 Metrics/LineLength               # 1行80文字制限
+1539 Style/StringLiterals             # Single Quotation を強制
+ 762 Style/FrozenStringLiteralComment # マジックコメントを強制
+ 704 Style/AsciiComments              # コメントにASCII文字を強制
+ 478 Style/Documentation              # クラスにドキュメントコメントを強制
+ 206 Style/IndentHash                 # Hashリテラルのスタイルを強制
+ 168 Style/NumericLiterals            # 数値の3ケタで区切りを強制 例) 300_000
+ 157 Metrics/MethodLength             # 1メソッドに含まれる行数制限
+ 154 Style/BracesAroundHashParameters # メソッド呼び出しの際Hashの括弧を強制
+ 151 Style/ExtraSpacing               # 余分なスペースを検出
+ 150 Metrics/AbcSize                  # メソッドの複雑さを検出
+ 145 Style/ClassAndModuleChildren     # ネストしたクラスのスタイルを強制
+ 139 Metrics/BlockLength              # 1ブロックに含まれる行数制限
+ 110 Style/SpaceInsideBlockBraces     # ブロックの括弧の周りにスペースを強制
+ 109 Style/HashSyntax                 # Hash Rockeet を使うか強制
+```
+
+---
 
 ## 2. MeowCop / RuboCop を Lint として使う
 
