@@ -49,6 +49,10 @@
 
 ---
 
+# 本題
+
+---
+
 ## 今日のテーマ
 
 ### 「静的解析」「技術的負債」<br>「リファクタリング」とそれから
@@ -78,7 +82,7 @@ RuboCop 開発者から見た、<br>
 ## Agenda
 
 1. RuboCop とは
-  1. 概略
+  1. RuboCop の機能
   1. RuboCop はそのままでは実用的ではない？
 1. 実用的な RuboCop Lint 編
 1. 実用的な RuboCop Style 編
@@ -95,17 +99,22 @@ Q. RuboCop を知っている人？ <i class="twa twa-lg twa-raised-hand"></i>
 
 ---
 
-### 1-1 RuboCop の概略
+### 1-1 RuboCop の機能
 
 
 
 RuboCop は Rubyの静的解析器で、<br>
 複数の役割を持っています。
 
-- [Ruby Style Guide](https://github.com/bbatsov/ruby-style-guide) に沿ってスタイルチェックを行う
-- バグやパフォーマンス上問題のあるコードを検出する
-- 複雑すぎるコードを検出する
+---
 
+### 機能例
+
+- [Ruby Style Guide](https://github.com/bbatsov/ruby-style-guide) に沿ってスタイルチェックを行う Cop
+- バグやパフォーマンス上問題のあるコードを検出する Cop
+- 複雑すぎるコードを検出する Cop
+
+ちなみに、Cop == 他の Lintでのルール
 
 ---
 
@@ -216,7 +225,7 @@ $ rubocop --format json |
 
 ---
 
-### 結果
+### 結果(上位15件)
 
 ```
 2065 Metrics/LineLength
@@ -236,11 +245,11 @@ $ rubocop --format json |
  109 Style/HashSyntax
 ```
 
-警告数が上位15件の Cop
+上位15件でもこれだけある… <i class="twa twa-crying-cat-face"></i>
 
 ---
 
-### メトリクス系のルールとスタイル系のCopがめちゃ怒る！
+### これは全て Metrics or Style 系の Cop
 
 ---
 
@@ -311,7 +320,8 @@ Metrics 制限がキツい
 - 大量のエラー原因は以下が多い
   - Style が合わない / キツい
   - Metrics がキツい
-- Lint 系 / Performance 系は上位15件ぐらいでは出てこない
+- 設定していくにはやっていく気持ちが必要
+  - RuboCop の Cop は300個以上ある
 
 
 ---
@@ -328,10 +338,11 @@ RuboCop を実用的に使うアプローチの1つ目として、MeowCop を紹
 - 何故ならば
   - Style が合わないから
   - Metrics がキツいから
+- いい感じに設定するのは大変
 
 ---
 
-### MeowCop のとは
+### MeowCop とは
 
 「どんなプロジェクトでも使える Cop」<br>
 だけを集めた RuboCop の設定
@@ -351,6 +362,22 @@ RuboCop を実用的に使うアプローチの1つ目として、MeowCop を紹
   - デフォルトはかなりキツい
   - 「この長さ/複雑さはありえない…(体感)」ぐらいを基準に
 
+---
+
+### インストール方法
+
+```sh
+$ gem install meowcop
+```
+
+```yaml
+# .rubocop.yml
+inherit_gem:
+  meowcop:
+    - config/rubocop.yml
+```
+
+簡単！ <i class="twa twa-two-hearts"></i>
 
 
 
@@ -391,7 +418,7 @@ $ rubocop
 
 ### MeowCop の効能
 
-- Lintがうるさいスタイルチェックに埋もれない
+- Lintがスタイルチェックに埋もれない
 - 一般的でないスタイルだけはチェックする(CamelCaseなど)
 - Metricsが特に複雑なコードのみを検出
 
@@ -399,9 +426,109 @@ $ rubocop
 
 ---
 
-## 3. Gry / RuboCop を Style Checker として使う
+## 3. Gry<br>RuboCop を Style Checker として使う
 
 ---
+
+### 問題点のおさらい
+
+- デフォルト設定では、警告が沢山出る
+- 何故ならば
+  - Style が合わないから
+  - Metrics がキツいから
+- いい感じに設定するのは大変
+
+解決した？ <i class="twa twa-thinking-face"></i>
+
+---
+
+### No!
+
+**Style が合わないから** は、無視しただけ <i class="twa twa-crying-cat-face"></i>
+
+MeowCopによってLintに秩序はもたらされたが、Styleへの秩序はもたらされていない…
+
+---
+
+
+
+### Gry とは
+
+「隠れたコーディングスタイルを、`.rubocop.yml`に抽出する」
+
+
+- [pocke/gry: Gry generates .rubocop.yml automatically](https://github.com/pocke/gry)
+- [隠れたコーディングスタイルを .rubocop.yml に抽出するツール、Gryをリリースしました！](http://blog-ja.sideci.com/entry/2017/01/31/110000)
+
+
+---
+
+### 隠れたコーディングスタイル？ <i class="twa twa-thinking-face"></i>
+
+
+`.rubocop.yml`になっていなくても、コーディング規約が明示されていなくても、実はソースコードはなんとなく統一されているのでは？
+
+=> それは隠れたコーディングスタイルなのでは！
+
+---
+
+### Gry のアプローチ
+
+- 隠れたコーディングスタイルを抽出して RuboCop の設定に
+  - プロジェクトに沿ったStyleの設定が出来る <i class="twa twa-star2"></i>
+  - Style Checker として RuboCop を活用できる！
+
+
+---
+
+### つかいかた
+
+```sh
+$ gem install gry
+$ gry >> .rubocop.yml
+```
+
+簡単！ <i class="twa twa-star2"></i>
+
+
+---
+
+
+### やってること
+
+- 全部の設定でとりあえずRuboCopを実行してみる
+- 一番警告が少なかった設定がプロジェクトにマッチしてる！
+
+
+筋肉実装 <i class="twa twa-muscle"></i><i class="twa twa-muscle"></i>
+
+---
+
+### MeowCop との相性
+
+- MeowCop(Lint) と Gry(Style) は直行する概念
+  - MeowCop で Lint に集中し、
+  - Gry で Style の統一にも取り組む
+
+
+ふたつを合わせて使えます<i class="twa twa-ok-woman"></i>
+
+---
+
+### 注意事項 <i class="twa twa-warning"></i>
+
+- Gry はまだ未完成
+  - 「Lintの設定はこうあるべき」という姿を示しただけ
+  - まだ設定できる項目はあるはず
+  - もっと賢い戦略で採用する設定を決められるはず
+  - まだ Gry の真の力は現れていない…！
+- あくまで「既存コードに合ったルール」
+  - 実際にルールを採用する際は、人間が見たほうがよさそう
+
+---
+
+
+
 
 
 
@@ -409,8 +536,8 @@ $ rubocop
 
 
 - 生でRuboCopを使うのはたいへん
-- MeowCop を使うと、RuboCopをLintとして使える
-- Gryを使うと、RuboCopを最適化されたスタイルチェッカとして使える
+- [MeowCop](https://github.com/sideci/meowcop) を使うと、RuboCopをLintとして使える
+- [Gry](https://github.com/pocke/gry) を使うと、RuboCopを最適化されたスタイルチェッカとして使える
 
 
 ご清聴ありがとうございました。
