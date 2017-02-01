@@ -20,7 +20,7 @@
 
 ---
 
-### 労働
+### SideCI
 
 
 <img src="sideci.png" alt="SideCI">
@@ -29,44 +29,46 @@
 
 ---
 
-### RuboCop でやってること
+### Shibart
 
-- [Performance/RegexpMatch](https://github.com/bbatsov/rubocop/pull/3824)
-- [Lint/SafeNavigationChain](https://github.com/bbatsov/rubocop/pull/3804)
-- [Lint/MultipleCompare](https://github.com/bbatsov/rubocop/pull/3795)
-- ...
+<img src="shibart.png" alt="Shibart">
 
-Lint 関係の Cop メイン
+[shibart.pocke.me](https://shibart.pocke.me)
 
 ---
+
+### RuboCop Contributor <i class="twa twa-gem"></i>
+
 
 
 <img src="rubocop-contributor.png" alt="Contribution Graph">
 
-トータルで9番目にコミットが多い
+トータル 70 コミットぐらい<i class="twa twa-muscle"></i>
 
 [Contributors to bbatsov/rubocop](https://github.com/bbatsov/rubocop/graphs/contributors)
 
 ---
 
-<img src="rubocop-2months.png" alt="Contribution Graph 2 months">
+## 今日のテーマ
 
-ここ2ヶ月だと一番コミットが多いのは私
+### 「静的解析」「技術的負債」<br>「リファクタリング」とそれから
 
-[Contributors to bbatsov/rubocop](https://github.com/bbatsov/rubocop/graphs/contributors?from=2016-11-30&to=2017-01-30&type=c)
+---
+
+### 話すこと
+
+私はこの中から「静的解析」<br>
+にフォーカスして話そうと思います。
+
 
 
 ---
 
+### 話すこと
 
-## Agenda
-
----
-
-## Agenda
 
 RuboCop 開発者から見た、<br>
-実用的な RuboCop の使い方を広めたい
+実用的な RuboCop の使い方
 
 
 
@@ -149,7 +151,7 @@ def foo                                           # めっちゃ複雑
   else
     case cond
     when x                                        # めっちゃ長い行
-      if (hoge == 1 && fuga == 2) || array.all? { |piyo| piyo <= 3 }  
+      if (hoge == 1 && fuga == 2) || array.all? { |piyo| piyo <= 3 }
         do_something1
       end
       do_something2
@@ -173,7 +175,7 @@ end
 - `-a`オプションを使用することで自動で問題を修正
 
 RuboCop を使えば<br>
-Ruby コードに平穏が訪れる……？？
+Ruby コードに平穏が訪れる…… <i class="twa twa-thinking-face"></i><i class="twa twa-thinking-face"></i>
 
 ---
 
@@ -182,7 +184,7 @@ Ruby コードに平穏が訪れる……？？
 ### 1-2 RuboCop の問題点
 
 
-平穏は訪れない
+平穏は訪れない <i class="twa twa-crying-cat-face"></i>
 
 ---
 
@@ -202,7 +204,19 @@ $ rubocop
 
 ---
 
-### 何故警告が出るのか
+### どのような警告が出るのか<br>調べてみた
+
+```sh
+$ rubocop --format json |
+  ruby -rjson -e '
+    puts JSON[STDIN.read]["files"].map{ |f|
+      f["offenses"]}.flatten.map{|x| x["cop_name"]}' |
+  sort | uniq -c | sort -nr | head -15
+```
+
+---
+
+### 結果
 
 ```
 2065 Metrics/LineLength
@@ -226,28 +240,161 @@ $ rubocop
 
 ---
 
+### メトリクス系のルールとスタイル系のCopがめちゃ怒る！
+
+---
+
+### 内訳
+
+
+
+Metrics 制限がキツい
+
+- 2065 Metrics/LineLength
+  - 1行80文字制限
+- 157 Metrics/MethodLength
+  - 1メソッドに含まれる行数制限
+- 150 Metrics/AbcSize
+  - メソッドの複雑さを検出
+-  139 Metrics/BlockLength
+  - 1ブロックに含まれる行数制限
+
+---
+
+### 内訳
+
+スタイルルールが適してない
+
+- 1539 Style/StringLiterals
+  - Single Quotation を強制
+-  762 Style/FrozenStringLiteralComment
+  - マジックコメントを強制
+-  704 Style/AsciiComments
+  - コメントにASCII文字を強制
+-  478 Style/Documentation
+  - クラスにドキュメントコメントを強制
+
+---
+
+### 内訳
+
+続) スタイルルールが適してない
+
+-  206 Style/IndentHash
+  - Hashリテラルのインデントスタイルを強制
+-  168 Style/NumericLiterals
+  - 数値の3ケタで区切りを強制 例) 300_000
+-  154 Style/BracesAroundHashParameters
+  - メソッド呼び出しの際Hashの括弧を強制
+-  151 Style/ExtraSpacing
+  - 余分なスペースを検出
+
+---
+
+### 内訳
+
+続) スタイルルールが適してない
+
+
+
+-  145 Style/ClassAndModuleChildren
+  - ネストしたクラスのスタイルを強制
+-  110 Style/SpaceInsideBlockBraces
+  - ブロックの括弧の周りにスペースを強制
+-  109 Style/HashSyntax
+  - Hash Rockeet を使うか強制
+
+---
+
+### 1-2 まとめ
+
+- 大量のエラー原因は以下が多い
+  - Style が合わない / キツい
+  - Metrics がキツい
+- Lint 系 / Performance 系は上位15件ぐらいでは出てこない
+
+
+---
+
+## 2. MeowCop<i class="twa twa-cat"></i><br>RuboCop を Lint として使う
+
+RuboCop を実用的に使うアプローチの1つ目として、MeowCop を紹介します
+
+---
+
+### 問題点のおさらい
+
+- デフォルト設定では、警告が沢山出る
+- 何故ならば
+  - Style が合わないから
+  - Metrics がキツいから
+
+---
+
+### MeowCop のとは
+
+「どんなプロジェクトでも使える Cop」<br>
+だけを集めた RuboCop の設定
+
+
+- [sideci/meowcop](https://github.com/sideci/meowcop)
+- [RuboCopを使い始めよう！ RuboCop導入に最適な設定、MeowCopをリリースしました！ - SideCI Blog](http://blog-ja.sideci.com/entry/2016/10/03/171816)
+
+---
+
+
+### 設定のアプローチの方法
+
+- Style系の Cop は概ね無効
+  - プロジェクトごとに変えたい設定が多いため
+- Metrics 系の Cop はしきい値を緩めに
+  - デフォルトはかなりキツい
+  - 「この長さ/複雑さはありえない…(体感)」ぐらいを基準に
+
+
+
+
+---
+
+### MeowCopを適用した<br>弊社プロダクトの様子
 
 ```
-2065 Metrics/LineLength               # 1行80文字制限
-1539 Style/StringLiterals             # Single Quotation を強制
- 762 Style/FrozenStringLiteralComment # マジックコメントを強制
- 704 Style/AsciiComments              # コメントにASCII文字を強制
- 478 Style/Documentation              # クラスにドキュメントコメントを強制
- 206 Style/IndentHash                 # Hashリテラルのスタイルを強制
- 168 Style/NumericLiterals            # 数値の3ケタで区切りを強制 例) 300_000
- 157 Metrics/MethodLength             # 1メソッドに含まれる行数制限
- 154 Style/BracesAroundHashParameters # メソッド呼び出しの際Hashの括弧を強制
- 151 Style/ExtraSpacing               # 余分なスペースを検出
- 150 Metrics/AbcSize                  # メソッドの複雑さを検出
- 145 Style/ClassAndModuleChildren     # ネストしたクラスのスタイルを強制
- 139 Metrics/BlockLength              # 1ブロックに含まれる行数制限
- 110 Style/SpaceInsideBlockBraces     # ブロックの括弧の周りにスペースを強制
- 109 Style/HashSyntax                 # Hash Rockeet を使うか強制
+$ rubocop
+....
+
+764 files inspected, 245 offenses detected
+```
+
+だいぶ平和になった<i class="twa twa-two-hearts"></i>(8545個 -> 245個)
+
+---
+
+### 内訳
+
+```
+38 Lint/UselessAssignment               # 未使用変数
+37 Metrics/LineLength                   # 200文字以上ある行…
+10 Metrics/AbcSize                      # 複雑なメソッド
+ 9 Metrics/PerceivedComplexity          # 複雑なメソッド
+ 7 Lint/ParenthesesAsGroupedExpression  # メソッド呼び出しの括弧が適切でない
+ 5 Style/EachWithObject                 # each_with_object 便利
+ 5 Metrics/CyclomaticComplexity         # 複雑なメソッド
+ 4 Style/ParenthesesAroundCondition     # condition に括弧要らない
+ 3 Lint/ShadowingOuterLocalVariable     # ローカル変数のシャドーイング
+ 2 Metrics/ParameterLists               # 多すぎる引数
+ 2 Lint/StringConversionInInterpolation # "a#{foo.to_s}" って無駄だよね
+ 1 Style/ClassAndModuleCamelCase        # クラスはCamelCaseで
+ 1 Performance/StringReplacement        # String#gsub より String#tr が速い
 ```
 
 ---
 
-## 2. MeowCop / RuboCop を Lint として使う
+### MeowCop の効能
+
+- Lintがうるさいスタイルチェックに埋もれない
+- 一般的でないスタイルだけはチェックする(CamelCaseなど)
+- Metricsが特に複雑なコードのみを検出
+
 
 
 ---
@@ -256,4 +403,14 @@ $ rubocop
 
 ---
 
+
+
 ## まとめ
+
+
+- 生でRuboCopを使うのはたいへん
+- MeowCop を使うと、RuboCopをLintとして使える
+- Gryを使うと、RuboCopを最適化されたスタイルチェッカとして使える
+
+
+ご清聴ありがとうございました。
