@@ -53,7 +53,7 @@
 
 ---
 
-## 今日のテーマ
+### 今日のテーマ
 
 ### 「静的解析」「技術的負債」<br>「リファクタリング」とそれから
 
@@ -249,7 +249,7 @@ $ rubocop --format json |
 
 ---
 
-### これは全て Metrics or Style 系の Cop
+### これは全て Metrics / Style 系の Cop
 
 ---
 
@@ -356,11 +356,11 @@ RuboCop を実用的に使うアプローチの1つ目として、MeowCop を紹
 
 ### 設定のアプローチの方法
 
-- Style系の Cop は概ね無効
+- Style系の Cop は殆ど無効
   - プロジェクトごとに変えたい設定が多いため
 - Metrics 系の Cop はしきい値を緩めに
-  - デフォルトはかなりキツい
-  - 「この長さ/複雑さはありえない…(体感)」ぐらいを基準に
+  - デフォルト: かなりキツい <i class="twa twa-anger"></i>
+  - 「この長さ/複雑さはありえない…(体感)」ぐらいを基準に変更
 
 ---
 
@@ -416,7 +416,7 @@ $ rubocop
 
 ---
 
-### MeowCop の効能
+### MeowCop の効能 <i class="twa twa-two-hearts"></i>
 
 - Lintがスタイルチェックに埋もれない
 - 一般的でないスタイルだけはチェックする(CamelCaseなど)
@@ -426,7 +426,7 @@ $ rubocop
 
 ---
 
-## 3. Gry<br>RuboCop を Style Checker として使う
+## 3. Gry<i class="twa twa-muscle"></i><br>RuboCop を Style Checker として使う
 
 ---
 
