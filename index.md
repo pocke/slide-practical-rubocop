@@ -16,6 +16,7 @@
 - Pocke ( Masataka Kuwabara )
 - Engineer at Actcat Inc.
 - RuboCop Contributor
+- Student at The Open University of Japan
 - TW: [@p\_ck\_](https://twitter.com/p_ck_)  GH: [@pocke](https://github.com)
 
 ---
@@ -67,7 +68,7 @@
 
 ---
 
-### 話すこと
+### テーマ
 
 
 RuboCop 開発者から見た、<br>
