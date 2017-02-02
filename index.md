@@ -43,7 +43,6 @@
 
 <img src="rubocop-contributor.png" alt="Contribution Graph">
 
-トータル 70 コミットぐらい<i class="twa twa-muscle"></i>
 
 [Contributors to bbatsov/rubocop](https://github.com/bbatsov/rubocop/graphs/contributors)
 
@@ -199,7 +198,7 @@ Ruby コードに平穏が訪れる…… <i class="twa twa-thinking-face"></i><
 
 ### ひたすら大量の警告
 
-弊社のメインプロダクトで無設定の RuboCop を走らせると、8545個の警告が
+SideCIのメインプロダクトで無設定の RuboCop を走らせると、8545個の警告が
 
 ```
 $ rubocop
@@ -283,7 +282,7 @@ Metrics 制限がキツい
 -  478 Style/Documentation
   - クラスにドキュメントコメントを強制
 
----
+--
 
 ### 内訳
 
@@ -298,7 +297,7 @@ Metrics 制限がキツい
 -  151 Style/ExtraSpacing
   - 余分なスペースを検出
 
----
+--
 
 ### 内訳
 
